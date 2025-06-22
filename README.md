@@ -83,6 +83,7 @@ git push -u origin main
 2. Sign up at [https://streamlit.io/cloud](https://streamlit.io/cloud) with your GitHub account
 
 3. From the Streamlit Cloud dashboard:
+
    - Click "New app"
    - Select your GitHub repository, branch, and main file (`app.py`)
    - Click "Deploy"

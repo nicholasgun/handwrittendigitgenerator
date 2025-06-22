@@ -94,7 +94,7 @@ def main():
     
     # Model path - using absolute path for reliability
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(script_dir, "models", "generator_epoch_80.pth")
+    model_path = os.path.join(script_dir, "models", "generator_epoch_99.pth")
     
     # Check if model exists
     if not os.path.exists(model_path):
