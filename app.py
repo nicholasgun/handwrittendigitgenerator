@@ -34,10 +34,21 @@ def load_model(model_path):
     
     # Load model weights
     try:
+        # Add debug information for troubleshooting
+        st.info(f"🔄 Attempting to load model from: {model_path}")
+        
         state_dict = torch.load(model_path, map_location=device)
+        
+        # Debug: Show info about the loaded state dict
+        st.info(f"📊 Model state dict loaded with {len(state_dict)} parameters")
+        
+        # Show first few parameter names for debugging
+        param_names = list(state_dict.keys())[:5]
+        st.info(f"🔍 First few parameter names: {param_names}")
         
         # Handle DataParallel model state_dict - remove 'module.' prefix if it exists
         if state_dict and all(k.startswith('module.') for k in state_dict.keys()):
+            st.info("🔧 Detected DataParallel model, removing 'module.' prefix...")
             # Create new OrderedDict without the 'module.' prefix
             from collections import OrderedDict
             new_state_dict = OrderedDict()
@@ -46,11 +57,16 @@ def load_model(model_path):
                 new_state_dict[name] = v
             state_dict = new_state_dict
         
+        # Show generator parameter names for comparison
+        generator_params = list(generator.state_dict().keys())[:5]
+        st.info(f"🏗️ Generator expects parameters: {generator_params}")
+        
         # Load state dict into model
         generator.load_state_dict(state_dict)
         generator.to(device)
         generator.eval()
         
+        st.success("✅ Model loaded successfully!")
         st.session_state["model_loaded"] = True
         return generator, device
         
@@ -155,8 +171,17 @@ def main():
         st.info(f"Using model: {selected_model}")
     else:
         selected_model = model_files[0]
+        st.info(f"📁 Found model file: {selected_model}")
     
     model_path = os.path.join(models_dir, selected_model)
+    st.info(f"🎯 Full model path: {model_path}")
+    
+    # Show model file size for debugging
+    try:
+        file_size = os.path.getsize(model_path) / (1024 * 1024)  # Size in MB
+        st.info(f"📏 Model file size: {file_size:.2f} MB")
+    except Exception as e:
+        st.warning(f"Could not get file size: {e}")
     
     # Load model with improved error handling
     generator, device = load_model(model_path)
