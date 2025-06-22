@@ -4,7 +4,16 @@ import numpy as np
 from PIL import Image
 import io
 import os
-from cgan_model import Generator, latent_dim
+
+# Test basic functionality
+st.write("🔧 Debug: Basic imports successful")
+
+try:
+    from cgan_model import Generator, latent_dim
+    st.write("✅ Debug: CGAN model imported successfully")
+except Exception as e:
+    st.error(f"❌ Debug: Error importing CGAN model: {e}")
+    st.stop()
 
 # Page configuration
 st.set_page_config(page_title="Handwritten Digit Generator", layout="centered")
@@ -102,63 +111,83 @@ def generate_images(digit, generator, device):
 
 # Main application
 def main():
-    # Title and description
-    st.markdown("<h1 style='text-align: center;'>Handwritten Digit Image Generator</h1>", unsafe_allow_html=True)
-    st.markdown("Generate synthetic MNIST-like images using your trained model.")
-    
-    # Model path - using absolute path for reliability
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    models_dir = os.path.join(script_dir, "models")
-    
-    # Check if models directory exists
-    if not os.path.exists(models_dir):
-        st.error(f"Models directory not found at: {models_dir}")
-        st.info("Please make sure the 'models' directory exists with your trained model file.")
-        return
-    
-    # List available model files
-    model_files = [f for f in os.listdir(models_dir) if f.endswith('.pth')]
-    
-    if not model_files:
-        st.error("No model files (.pth) found in the models directory.")
-        st.info(f"Please upload your trained model file to: {models_dir}")
-        return
-    
-    # If multiple models exist, let user choose (for debugging purposes)
-    if len(model_files) > 1:
-        st.info(f"Found {len(model_files)} model files: {', '.join(model_files)}")
-        # For now, we'll use the first one, but you could add a selectbox here
-        selected_model = model_files[0]
-        st.info(f"Using model: {selected_model}")
-    else:
-        selected_model = model_files[0]
-    
-    model_path = os.path.join(models_dir, selected_model)
-    
-    # Load model with improved error handling
-    generator, device, status = load_model(model_path)
-    
-    # Handle the loading result and set session state
-    if status == "success" and generator is not None:
-        st.session_state["model_loaded"] = True
-        model_loaded = True
-    else:
-        st.session_state["model_loaded"] = False
-        model_loaded = False
-        if status != "success":
-            st.error(f"❌ {status}")
-    
-    # Only show the interface if model loaded successfully
-    if model_loaded and generator is not None:
-        # User input
-        # Digit selection with proper label for accessibility
-        digit = st.selectbox("Choose a digit to generate (0-9):", options=list(range(10)), index=2)
+    try:
+        # Title and description
+        st.markdown("<h1 style='text-align: center;'>Handwritten Digit Image Generator</h1>", unsafe_allow_html=True)
+        st.markdown("Generate synthetic MNIST-like images using your trained model.")
         
-        # Generate button
-        if st.button("Generate Images", type="primary", use_container_width=False):
-            generate_images(digit, generator, device)
-    else:
-        st.warning("⚠️ Please fix the model loading issues above before proceeding.")
+        # Model path - using absolute path for reliability
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        models_dir = os.path.join(script_dir, "models")
+        
+        # Debug: Show basic info
+        st.write(f"Debug: Script dir = {script_dir}")
+        st.write(f"Debug: Models dir = {models_dir}")
+        
+        # Check if models directory exists
+        if not os.path.exists(models_dir):
+            st.error(f"Models directory not found at: {models_dir}")
+            st.info("Please make sure the 'models' directory exists with your trained model file.")
+            return
+        
+        # List available model files
+        model_files = [f for f in os.listdir(models_dir) if f.endswith('.pth')]
+        st.write(f"Debug: Found model files = {model_files}")
+        
+        if not model_files:
+            st.error("No model files (.pth) found in the models directory.")
+            st.info(f"Please upload your trained model file to: {models_dir}")
+            return
+        
+        # If multiple models exist, let user choose (for debugging purposes)
+        if len(model_files) > 1:
+            st.info(f"Found {len(model_files)} model files: {', '.join(model_files)}")
+            # For now, we'll use the first one, but you could add a selectbox here
+            selected_model = model_files[0]
+            st.info(f"Using model: {selected_model}")
+        else:
+            selected_model = model_files[0]
+        
+        model_path = os.path.join(models_dir, selected_model)
+        st.write(f"Debug: Model path = {model_path}")
+        
+        # Load model with improved error handling
+        try:
+            generator, device, status = load_model(model_path)
+            st.write(f"Debug: Load status = {status}")
+            st.write(f"Debug: Generator type = {type(generator)}")
+        except Exception as e:
+            st.error(f"Error calling load_model: {e}")
+            return
+        
+        # Handle the loading result and set session state
+        if status == "success" and generator is not None:
+            st.session_state["model_loaded"] = True
+            model_loaded = True
+            st.success("✅ Model loaded successfully!")
+        else:
+            st.session_state["model_loaded"] = False
+            model_loaded = False
+            if status != "success":
+                st.error(f"❌ {status}")
+        
+        # Only show the interface if model loaded successfully
+        if model_loaded and generator is not None:
+            # User input
+            # Digit selection with proper label for accessibility
+            digit = st.selectbox("Choose a digit to generate (0-9):", options=list(range(10)), index=2)
+            
+            # Generate button
+            if st.button("Generate Images", type="primary", use_container_width=False):
+                generate_images(digit, generator, device)
+        else:
+            st.warning("⚠️ Please fix the model loading issues above before proceeding.")
+            
+    except Exception as e:
+        st.error(f"Critical error in main function: {e}")
+        st.error(f"Error type: {type(e).__name__}")
+        import traceback
+        st.error(f"Traceback: {traceback.format_exc()}")
 
 if __name__ == "__main__":
     main()
