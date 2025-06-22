@@ -186,8 +186,14 @@ def main():
     # Load model with improved error handling
     generator, device = load_model(model_path)
     
+    # Debug: Check session state
+    model_loaded = st.session_state.get("model_loaded", False)
+    st.info(f"🔍 Debug: model_loaded = {model_loaded}, generator is not None = {generator is not None}")
+    
     # Only show the interface if model loaded successfully
-    if st.session_state.get("model_loaded", False) and generator is not None:
+    if model_loaded and generator is not None:
+        st.success("🎉 Ready to generate images!")
+        
         # User input
         # Digit selection with proper label for accessibility
         digit = st.selectbox("Choose a digit to generate (0-9):", options=list(range(10)), index=2)
@@ -209,6 +215,8 @@ def main():
             st.write(f"Current working directory: {os.getcwd()}")
             st.write(f"Device: {device}")
             st.write(f"PyTorch version: {torch.__version__}")
+            st.write(f"Session state model_loaded: {st.session_state.get('model_loaded', 'Not set')}")
+            st.write(f"Generator object: {type(generator) if generator else 'None'}")
 
 if __name__ == "__main__":
     main()
